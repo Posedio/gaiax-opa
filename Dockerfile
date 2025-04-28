@@ -28,7 +28,7 @@ RUN go mod download
 COPY main.go main.go
 
 
-RUN go build -v -o goodrl
+RUN go build -v -o gaiax-opa
 
 FROM alpine
 LABEL authors="Philipp Seifert-Kehrer"
