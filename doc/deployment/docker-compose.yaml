@@ -1,0 +1,17 @@
+services:
+  opa:
+    build:
+      context: ../../.
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command:
+      - "run"
+      - "--server"
+      - "--log-level=debug"
+      - "--addr=:8181"
+      - "--watch"
+      - "/policies"
+    volumes:
+      - "./policies:/policies"
+    ports:
+      - "127.0.0.1:8181:8181"

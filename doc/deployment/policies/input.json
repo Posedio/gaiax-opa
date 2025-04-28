@@ -1,0 +1,25 @@
+{
+  "policy": 	{
+    "@context": "http://www.w3.org/ns/odrl.jsonld",
+    "@type": "Offer",
+    "profile": "https://w3id.org/gaia-x/ovc/1/",
+    "uid": "http://what.example.com/policy:6163",
+    "target": "http://example.com/document:1234",
+    "assigner": "http://example.com/org:616",
+    "conflict": "perm",
+    "permission": [{
+      "assignee": "https://example.com/per:5234",
+      "action": "distribute",
+      "constraint": [{
+        "leftOperand": "same",
+        "operator": "eq",
+        "rightOperand":  {"@value": "same", "@type": "xsd:string"}
+      }]
+    }]
+  },
+  "request": {
+    "principal": "https://example.com/per:5234",
+    "target": "http://example.com/document:1234",
+    "desiredAction": "distribute"
+  }
+}
