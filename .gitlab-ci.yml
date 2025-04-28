@@ -10,7 +10,6 @@ image: golang:1.24.1
 variables:
   OUTPUT_NAME: $CI_PROJECT_NAME
   GIT_SUBMODULE_STRATEGY: recursive
-  GOPRIVATE: gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/*
 
 stages:
   - test
