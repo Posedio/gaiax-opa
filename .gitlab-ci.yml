@@ -10,6 +10,7 @@ image: golang:1.24.1
 variables:
   OUTPUT_NAME: $CI_PROJECT_NAME
   GIT_SUBMODULE_STRATEGY: recursive
+  GOPRIVATE: gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/*
 
 stages:
   - test
@@ -22,21 +23,16 @@ test:
   script:
     - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
-    - go test -race $(go list ./... | grep -v /vendor/)
     - go test --tags=gaiax_ovc -race $(go list ./... | grep -v /vendor/)
 
 build:
   stage: build
   script:
-    - mkdir -p $OUTPUT_NAME
-    - go build -o $OUTPUT_NAME ./...
-
     - mkdir -p $OUTPUT_NAME-gaiax_ovc
-    - go build --tags=gaiax_ovc -o $OUTPUT_NAME-gaiax_ovc ./...
+    - go build --tags=gaiax_ovc -o $OUTPUT_NAME ./...
   artifacts:
     paths:
       - $OUTPUT_NAME
-      - $OUTPUT_NAME-gaiax_ovc
   needs:
     - test
 

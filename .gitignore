@@ -4,6 +4,3 @@
 logs/
 .DS_Store
 gaiax-opa
-
-input.json
-sample.rego
