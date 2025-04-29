@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Posedio/gaia-x-go/verifiableCredentials"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/cmd"
 	"github.com/open-policy-agent/opa/rego"
@@ -10,7 +11,7 @@ import (
 	"os"
 )
 
-func odrl(bctx rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
+func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 	fmt.Println("calling engine custom built-in")
 	var policy engine.Policy
 	var odrlReq engine.OdrlRequest
@@ -32,7 +33,74 @@ func odrl(bctx rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 	return ast.BooleanTerm(ok), nil
 }
 
-// FIXME might (at some point) be smarter to outsource opa integration in separate repo, but not until independent use of godrl necessary
+func VPFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+	var token string
+	err := ast.As(req.Value, &token)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	vp, err := verifiableCredentials.VPFROMJWT([]byte(token))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = vp.Verify(verifiableCredentials.IssuerMatch())
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	vcs, err := vp.DecodeEnvelopedCredentials()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	for _, vc := range vcs {
+		err := vc.Verify(verifiableCredentials.IssuerMatch())
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+	}
+	value, err := ast.InterfaceToValue(vcs)
+	if err != nil {
+		return nil, err
+	}
+	t := &ast.Term{Value: value}
+
+	return t, nil
+}
+
+func VCFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+	var token string
+	err := ast.As(req.Value, &token)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	vc, err := verifiableCredentials.VCFromJWT([]byte(token))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = vc.Verify(verifiableCredentials.IssuerMatch())
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	value, err := ast.InterfaceToValue(vc)
+	if err != nil {
+		return nil, err
+	}
+	t := &ast.Term{Value: value}
+
+	return t, nil
+}
+
 func main() {
 	rego.RegisterBuiltin2(
 		&rego.Function{
@@ -40,6 +108,20 @@ func main() {
 			Decl: types.NewFunction(types.Args(types.A, types.A), types.B),
 		},
 		odrl,
+	)
+	rego.RegisterBuiltin1(
+		&rego.Function{
+			Name: "resolveVPFromJWT",
+			Decl: types.NewFunction(types.Args(types.A), types.A),
+		},
+		VPFromJWT,
+	)
+	rego.RegisterBuiltin1(
+		&rego.Function{
+			Name: "resolveVCFromJWT",
+			Decl: types.NewFunction(types.Args(types.A), types.A),
+		},
+		VCFromJWT,
 	)
 
 	if err := cmd.RootCommand.Execute(); err != nil {
