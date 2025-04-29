@@ -1,4 +1,4 @@
-package gaiax_opa
+package main
 
 import (
 	"fmt"
