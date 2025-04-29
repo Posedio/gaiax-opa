@@ -1,7 +1,7 @@
 package verify.verifiablePresentation
 
 # TODO: move to data
-valid_issuer := {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me"}
+valid_issuer := {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2"}
 
 default allow = false
 
