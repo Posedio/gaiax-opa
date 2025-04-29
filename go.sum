@@ -188,6 +188,8 @@ github.com/yashtewari/glob-intersection v0.2.0 h1:8iuHdN88yYuCzCdjt0gDe+6bAhUwBe
 github.com/yashtewari/glob-intersection v0.2.0/go.mod h1:LK7pIC3piUjovexikBbJ26Yml7g8xa5bsjfx2v1fwok=
 gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250428184141-19f363d5da3e h1:mHDGcNevPyLhAcO1NMCg1RzffKkhEOLBTfaK6UjE+fc=
 gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250428184141-19f363d5da3e/go.mod h1:Qu+iQ4aXgGjHb544hZ2cQhMzIwKE1txSrtRmDXJzJZ8=
+gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429121827-7f7c84099d8f h1:qfKXBkytfK0vX99lle6/dpGsDjL73QvBDOa4TzwH4pg=
+gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429121827-7f7c84099d8f/go.mod h1:8drHVBvNA7QzQcamtMFJOlEmyeUWAXGPO+DTEb9XlAY=
 go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=
 go.opencensus.io v0.24.0/go.mod h1:vNK8G9p7aAivkbmorf4v+7Hgx+Zs0yY+0fOtgBfjQKo=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=

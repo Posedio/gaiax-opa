@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/open-policy-agent/opa v1.3.0
-	gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250428184141-19f363d5da3e
+	gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429121827-7f7c84099d8f
 )
 
 require (
