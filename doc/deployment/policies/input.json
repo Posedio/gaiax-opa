@@ -20,6 +20,6 @@
   "request": {
     "principal": "https://example.com/per:5234",
     "target": "http://example.com/document:1234",
-    "desiredAction": "distribute"
+    "action": "distribute"
   }
 }

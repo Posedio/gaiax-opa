@@ -245,8 +245,8 @@ github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 h1:EzJWgHo
 github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415/go.mod h1:GwrjFmJcFw6At/Gs6z4yjiIwzuJ1/+UwLxMQDVQXShQ=
 github.com/yashtewari/glob-intersection v0.2.0 h1:8iuHdN88yYuCzCdjt0gDe+6bAhUwBeEWqThExu54RFg=
 github.com/yashtewari/glob-intersection v0.2.0/go.mod h1:LK7pIC3piUjovexikBbJ26Yml7g8xa5bsjfx2v1fwok=
-gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429124750-4f8e78adf12a h1:vhN1SmX5s0RaQK/QnG3LovnXslc29nJ4KedB7/Ddtvg=
-gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429124750-4f8e78adf12a/go.mod h1:RQGXrCg9EDtb95iHa2jcYcjwp3u32i2Tq597VP948ZA=
+gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429134728-01addd2a23c3 h1:5J/VmmIMLG3g/DRYKnKxR+9wQRfj9fJfOPyUEYrb6Eo=
+gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429134728-01addd2a23c3/go.mod h1:RQGXrCg9EDtb95iHa2jcYcjwp3u32i2Tq597VP948ZA=
 go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=
 go.opencensus.io v0.24.0/go.mod h1:vNK8G9p7aAivkbmorf4v+7Hgx+Zs0yY+0fOtgBfjQKo=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
