@@ -45,19 +45,54 @@ func VPFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 		fmt.Println(err)
 		return nil, err
 	}
+
+	err = vp.Verify(verifiableCredentials.IssuerMatch())
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
 	vcs, err := vp.DecodeEnvelopedCredentials()
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 	for _, vc := range vcs {
-		err := vc.Verify()
+		err := vc.Verify(verifiableCredentials.IssuerMatch())
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
 	}
 	value, err := ast.InterfaceToValue(vcs)
+	if err != nil {
+		return nil, err
+	}
+	t := &ast.Term{Value: value}
+
+	return t, nil
+}
+
+func VCFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+	var token string
+	err := ast.As(req.Value, &token)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	vc, err := verifiableCredentials.VCFromJWT([]byte(token))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = vc.Verify(verifiableCredentials.IssuerMatch())
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	value, err := ast.InterfaceToValue(vc)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +115,13 @@ func main() {
 			Decl: types.NewFunction(types.Args(types.A), types.A),
 		},
 		VPFromJWT,
+	)
+	rego.RegisterBuiltin1(
+		&rego.Function{
+			Name: "resolveVCFromJWT",
+			Decl: types.NewFunction(types.Args(types.A), types.A),
+		},
+		VCFromJWT,
 	)
 
 	if err := cmd.RootCommand.Execute(); err != nil {

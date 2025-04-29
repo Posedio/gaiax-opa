@@ -1,9 +1,9 @@
-module gaiax-opa
+module main
 
 go 1.24.1
 
 require (
-	github.com/Posedio/gaia-x-go v0.2.17
+	github.com/Posedio/gaia-x-go v0.2.18
 	github.com/open-policy-agent/opa v1.3.0
 	gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250428184141-19f363d5da3e
 )
@@ -21,7 +21,7 @@ require (
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/dgraph-io/badger/v4 v4.6.0 // indirect
-	github.com/dgraph-io/ristretto/v2 v2.1.0 // indirect
+	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
