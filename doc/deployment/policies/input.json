@@ -1,4 +1,4 @@
-{
+{"input": {
   "policy": 	{
     "@context": "http://www.w3.org/ns/odrl.jsonld",
     "@type": "Offer",
@@ -20,6 +20,104 @@
   "request": {
     "principal": "https://example.com/per:5234",
     "target": "http://example.com/document:1234",
-    "action": "distribute"
+    "action": "distribute",
+    "requestContext": {
+      "vcs": [
+        {
+          "@context": [
+            "https://www.w3.org/ns/credentials/v2",
+            "https://w3id.org/gaia-x/development#"
+          ],
+          "credentialSubject": {
+            "gx:countryCode": "AT",
+            "gx:vatID": "ATU75917607",
+            "id": "https://did.dumss.me/LRN#CS",
+            "type": "gx:VatID"
+          },
+          "description": "Value Added Tax Identifier",
+          "evidence": {
+            "gx:evidenceOf": "gx:VatID",
+            "gx:evidenceURL": "http://ec.europa.eu/taxation_customs/vies/services/checkVatService",
+            "gx:executionDate": "2025-04-29T10:59:39.997+00:00"
+          },
+          "id": "https://did.dumss.me/LRN",
+          "issuer": "did:web:www.delta-dao.com:notary:v2",
+          "name": "VAT ID",
+          "type": [
+            "VerifiableCredential",
+            "gx:VatID"
+          ],
+          "validFrom": "2025-04-29T10:59:39.997Z",
+          "validUntil": "2025-07-28T10:59:39.997Z"
+        },
+        {
+          "@context": [
+            "https://www.w3.org/ns/credentials/v2",
+            "https://w3id.org/gaia-x/development#"
+          ],
+          "credentialSubject": {
+            "gx:gaiaxTermsAndConditions": "4bd7554097444c960292b4726c2efa1373485e8a5565d94d41195214c5e0ceb3"
+          },
+          "id": "https://did.dumss.me/tc",
+          "issuer": "did:web:did.dumss.me",
+          "type": [
+            "VerifiableCredential",
+            "gx:Issuer"
+          ],
+          "validFrom": "2025-04-29T12:59:40.260636+02:00"
+        },
+        {
+          "@context": [
+            "https://www.w3.org/ns/credentials/v2",
+            "https://w3id.org/gaia-x/development#"
+          ],
+          "credentialSubject": {
+            "@id": "https://did.dumss.me/address#cs",
+            "gx:countryCode": "AT",
+            "gx:countryName": "Austria",
+            "vcard:locality": "Vienna",
+            "vcard:postal-code": "1040",
+            "vcard:street-address": "Weyringergasse 1-3/DG "
+          },
+          "id": "https://did.dumss.me/address",
+          "issuer": "did:web:did.dumss.me",
+          "type": [
+            "VerifiableCredential",
+            "gx:Address"
+          ],
+          "validFrom": "2025-04-29T12:59:40.262012+02:00",
+          "validUntil": "2026-04-29T12:59:40.262012+02:00"
+        },
+        {
+          "@context": [
+            "https://www.w3.org/ns/credentials/v2",
+            "https://w3id.org/gaia-x/development#"
+          ],
+          "credentialSubject": {
+            "@id": "https://did.dumss.me/legalPerson#cs",
+            "gx:headquartersAddress": {
+              "@id": "https://did.dumss.me/address#cs",
+              "@type": "gx:Address"
+            },
+            "gx:legalAddress": {
+              "@id": "https://did.dumss.me/address#cs",
+              "@type": "gx:Address"
+            },
+            "gx:registrationNumber": {
+              "@id": "https://did.dumss.me/LRN#cs"
+            }
+          },
+          "id": "https://did.dumss.me/legalPerson",
+          "issuer": "did:web:did.dumss.me",
+          "name": "Posedio GmbH",
+          "type": [
+            "VerifiableCredential",
+            "gx:LegalPerson"
+          ],
+          "validFrom": "2025-04-29T12:59:40.372577+02:00"
+        }
+      ]
+
+    }
   }
-}
+}}
