@@ -5,7 +5,7 @@ go 1.24.1
 require (
 	github.com/Posedio/gaia-x-go v0.2.18
 	github.com/open-policy-agent/opa v1.3.0
-	gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250429141606-5da4f5ce850b
+	gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.0.2-0.20250430092135-235c4f4e212e
 )
 
 require (
