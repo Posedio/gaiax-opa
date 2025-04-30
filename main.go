@@ -24,11 +24,13 @@ func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 		return nil, err
 	}
 
-	ok, err := engine.Evaluate(policy, odrlReq)
+	eval := engine.NewEvaluation(policy, odrlReq)
+	ok, report, err := eval.Evaluate()
 	if err != nil {
 		fmt.Println("error evaluating")
 		return nil, err
 	}
+	fmt.Println(report)
 
 	return ast.BooleanTerm(ok), nil
 }
