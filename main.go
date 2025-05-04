@@ -66,7 +66,13 @@ func VPFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 			return nil, err
 		}
 	}
-	value, err := ast.InterfaceToValue(vcs)
+
+	m := map[string]interface{}{
+		"vp":  vp,
+		"vcs": vcs,
+	}
+
+	value, err := ast.InterfaceToValue(m)
 	if err != nil {
 		return nil, err
 	}

@@ -14,16 +14,16 @@ allow if {
     count(deny) == 0
 }
 
-vcs := resolveVPFromJWT(input.jwt)
+re := resolveVPFromJWT(input.jwt)
 
 deny contains msg if {
     # talk to stefan what his extension does in case of an invalid jwt
-    not vcs
+    not re.vcs
     msg := "Invalid JWT"
 }
 
 all_issuers_in_vp contains issuer if {
-    issuer := vcs[_].issuer
+    issuer := re.vcs[_].issuer
 } 
 
 # Only allow valid_issuers
@@ -34,7 +34,7 @@ deny contains msg if {
 }
 
 service_offerings contains so if {
-    some vc in vcs
+    some vc in re.vcs
     some type in vc.type
     type ==  "gx:ServiceOffering"
     so := vc
