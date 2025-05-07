@@ -75,6 +75,61 @@ func VPFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 
 	value, err := ast.InterfaceToValue(m)
 	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	t := &ast.Term{Value: value}
+
+	return t, nil
+}
+
+func VPFromJWTResolved(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+	var token string
+	err := ast.As(req.Value, &token)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	vp, err := verifiableCredentials.VPFROMJWT([]byte(token))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = vp.Verify(verifiableCredentials.IssuerMatch())
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	vcs, err := vp.DecodeEnvelopedCredentials()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	for _, vc := range vcs {
+		err := vc.Verify(verifiableCredentials.IssuerMatch())
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+	}
+
+	rvcs, err := vp.DecodeCredentialsAndResolveAllReferences()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	m := map[string]interface{}{
+		"vp":  vp,
+		"vcs": vcs,
+		"css": rvcs,
+	}
+
+	value, err := ast.InterfaceToValue(m)
+	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	t := &ast.Term{Value: value}
@@ -103,6 +158,7 @@ func VCFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 
 	value, err := ast.InterfaceToValue(vc)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	t := &ast.Term{Value: value}
@@ -131,6 +187,13 @@ func main() {
 			Decl: types.NewFunction(types.Args(types.A), types.A),
 		},
 		VCFromJWT,
+	)
+	rego.RegisterBuiltin1(
+		&rego.Function{
+			Name: "fullResolveVPFromJWT",
+			Decl: types.NewFunction(types.Args(types.A), types.A),
+		},
+		VPFromJWTResolved,
 	)
 
 	if err := cmd.RootCommand.Execute(); err != nil {
