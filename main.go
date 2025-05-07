@@ -1,20 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Posedio/gaia-x-go/verifiableCredentials"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/cmd"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/types"
-	"gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl/engine"
+	"gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl"
 	"os"
 )
 
 func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 	fmt.Println("calling engine custom built-in")
-	var policy engine.Policy
-	var odrlReq engine.OdrlRequest
+	var policy json.RawMessage
+	var odrlReq godrl.OdrlRequest
 	if err := ast.As(pol.Value, &policy); err != nil {
 		fmt.Println("error getting policy")
 		return nil, err
@@ -24,8 +25,8 @@ func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 		return nil, err
 	}
 
-	eval := engine.NewEvaluation(policy, odrlReq)
-	ok, report, err := eval.Evaluate()
+	loadedPol, err := godrl.LoadPolicy(policy)
+	ok, report, err := godrl.Evaluate(loadedPol, odrlReq)
 	if err != nil {
 		fmt.Println("error evaluating")
 		return nil, err
