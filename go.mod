@@ -3,7 +3,7 @@ module main
 go 1.24.1
 
 require (
-	github.com/Posedio/gaia-x-go v0.2.25
+	github.com/Posedio/gaia-x-go v0.2.26
 	github.com/open-policy-agent/opa v1.3.0
 	gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl v0.1.0
 )
