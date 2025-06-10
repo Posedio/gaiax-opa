@@ -3,7 +3,7 @@ LABEL authors="Philipp Seifert-Kehrer"
 
 RUN apk update && apk add --no-cache git tzdata build-base
 
-ARG BUILDPATH=/go/src/gitlab.euprogigant.kube.a1.digital/gaiax-opa
+ARG BUILDPATH=/go/src/github.com/Posedio/gaiax-opa
 
 #https://stackoverflow.com/a/55757473/12429735
 ENV USER=tuw
@@ -38,7 +38,7 @@ ENV GROUP=eupg
 
 RUN apk --no-cache add curl
 
-ARG BUILDPATH=/go/src/gitlab.euprogigant.kube.a1.digital/gaiax-opa
+ARG BUILDPATH=/go/src/github.com/Posedio/gaiax-opa
 
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/passwd /etc/passwd

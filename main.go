@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Posedio/gaia-x-go/verifiableCredentials"
+	"github.com/Posedio/godrl"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/cmd"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/types"
-	"gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/godrl"
 	"os"
 )
 

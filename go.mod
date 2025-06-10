@@ -4,8 +4,8 @@ go 1.24.1
 
 require (
 	github.com/Posedio/gaia-x-go v0.2.26
-	github.com/open-policy-agent/opa v1.3.0
 	github.com/Posedio/godrl v0.1.1
+	github.com/open-policy-agent/opa v1.3.0
 )
 
 require (
