@@ -14,7 +14,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.24.1
+      image: golang:1.24.6
     env:
       GOPATH: ${{ github.workspace }}/.go
     steps:
@@ -47,7 +47,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.24.1
+      image: golang:1.24.6
     needs: test
     env:
       GOPATH: ${{ github.workspace }}/.go

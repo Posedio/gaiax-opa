@@ -1,6 +1,6 @@
 module main
 
-go 1.24.5
+go 1.24.6
 
 require (
 	github.com/Posedio/gaia-x-go v0.2.28
