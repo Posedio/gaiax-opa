@@ -3,7 +3,7 @@ package verify.legalPerson
 default allow = false
 
 # TODO: move to data
-valid_issuer := {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2"}
+valid_issuer := {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2", "did:web:compliance.lab.gaia-x.eu:main"}
 
 result := {
     "allow": allow,
@@ -36,7 +36,6 @@ deny contains msg if {
 
 
 
-participant_vcs := resolveVPFromJWT(input.jwt)
 
 odrl_policy := {
     "@context": "http://www.w3.org/ns/engine.jsonld",
@@ -61,15 +60,18 @@ odrl_policy := {
 }
 
 
-allow if {
+deny contains msg if{
     odrl_request := {
         "principal": "https://example.com/per:5234",
         "target": "http://example.com/document:1234",
         "action": "use",
         "requestContext": {
-            "vcs": participant_vcs
+            "version": "1.0.0",
+            "vcs": re.vcs
         }
-    }
 
-    odrl(odrl_policy, odrl_request)
+    }
+    not odrl(odrl_policy, odrl_request)
+
+    msg := "failed odrl"
 }

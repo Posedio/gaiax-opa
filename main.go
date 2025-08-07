@@ -28,7 +28,7 @@ func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 	loadedPol, err := godrl.LoadPolicy(policy)
 	ok, report, err := godrl.Evaluate(loadedPol, odrlReq)
 	if err != nil {
-		fmt.Println("error evaluating")
+		fmt.Printf("error evaluating: %v", err)
 		return nil, err
 	}
 	fmt.Println(report)

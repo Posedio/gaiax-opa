@@ -6,9 +6,9 @@ RUN apk update && apk add --no-cache git tzdata build-base
 ARG BUILDPATH=/go/src/github.com/Posedio/gaiax-opa
 
 #https://stackoverflow.com/a/55757473/12429735
-ENV USER=tuw
+ENV USER=pos
 ENV UID=60000
-ENV GROUP=eupg
+ENV GROUP=posedio
 ENV GID=50000
 
 RUN adduser \
@@ -28,15 +28,14 @@ RUN go mod download
 COPY main.go main.go
 
 
-RUN go build -v -o gaiax-opa
+RUN go build --tags=gaiax_ovc -v -o gaiax-opa
 
 FROM alpine
 LABEL authors="Philipp Seifert-Kehrer"
 
-ENV USER=tuw
-ENV GROUP=eupg
+ENV USER=pos
+ENV GROUP=posedio
 
-RUN apk --no-cache add curl
 
 ARG BUILDPATH=/go/src/github.com/Posedio/gaiax-opa
 

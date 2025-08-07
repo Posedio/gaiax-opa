@@ -1,7 +1,23 @@
 # gaiax-opa
 
+OPA extension for Gaia-X and ODRL
+
+## Usage
+
+see doc/deployment folder
 
 
-## Getting started
+## Contributing
+Contributions are welcome, just open a pull request, please add/extend tests if you add new features.
 
-The used `godrl` package is not yet published publicly. So set `export GOPRIVATE=gitlab.euprogigant.kube.a1.digital/philipp.seifert-kehrer/*` and authenticate for the time being.
+## Contributor
+Philipp Seifert-Kehrer, Posedio GmbH
+
+Stefan Dumss, Posedio GmbH
+
+## License
+Released under MIT License, see the LICENCE file
+
+
+
+Copyright (c) 2025 Posedio GmbH
