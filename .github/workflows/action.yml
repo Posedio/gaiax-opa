@@ -9,6 +9,7 @@ on:
 
 env:
   OUTPUT_NAME: ${{ github.event.repository.name }}
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   test:
@@ -72,33 +73,34 @@ jobs:
           name: ${{ env.OUTPUT_NAME }}
           path: ${{ env.OUTPUT_NAME }}
 
-#  docker-build:
-#    runs-on: ubuntu-latest
-#    needs: build
-#    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-#    container:
-#      image: gcr.io/kaniko-project/executor:debug
-#      options: --entrypoint ""
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          submodules: recursive
-#
-#      - name: Set up Docker auth for Kaniko
-#        run: |
-#          mkdir -p /kaniko/.docker
-#          echo "{\"auths\":{\"${{ env.CI_REGISTRY }}\":{\"username\":\"${{ secrets.CI_REGISTRY_USER }}\",\"password\":\"${{ secrets.CI_REGISTRY_PASSWORD }}\"}}}" > /kaniko/.docker/config.json
-#
-#      - name: Run Kaniko build
-#        run: |
-#          /kaniko/executor \
-#            --context $GITHUB_WORKSPACE \
-#            --dockerfile $GITHUB_WORKSPACE/Dockerfile \
-#            --build-arg ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
-#            --destination ${{ env.CI_REGISTRY_IMAGE }}:${{ github.ref_name }} \
-#            --destination ${{ env.CI_REGISTRY_IMAGE }}:${{ github.ref_slug }}
-#    env:
-#      CI_REGISTRY: ${{ secrets.CI_REGISTRY }}
-#      CI_REGISTRY_IMAGE: ${{ secrets.CI_REGISTRY_IMAGE }}
-#      CI_PROJECT_DIR: $GITHUB_WORKSPACE
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
