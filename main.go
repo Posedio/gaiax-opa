@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/Posedio/gaia-x-go/verifiableCredentials"
 	"github.com/Posedio/godrl"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/cmd"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/types"
-	"os"
 )
 
 func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
@@ -28,43 +29,64 @@ func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 	loadedPol, err := godrl.LoadPolicy(policy)
 	ok, report, err := godrl.Evaluate(loadedPol, odrlReq)
 	if err != nil {
-		fmt.Printf("error evaluating: %v", err)
+		return errorMessageToTerm(err)
+	}
+
+	m := map[string]interface{}{
+		"ok":     ok,
+		"report": report,
+	}
+
+	return interfaceToTerm(m)
+}
+
+func interfaceToTerm(a any) (*ast.Term, error) {
+	value, err := ast.InterfaceToValue(a)
+	if err != nil {
+		fmt.Println(err) //actual error
 		return nil, err
 	}
-	fmt.Println(report)
+	return &ast.Term{Value: value}, nil
+}
 
-	return ast.BooleanTerm(ok), nil
+func errorMessageToTerm(e error) (*ast.Term, error) {
+	m := map[string]interface{}{
+		"error": e.Error(),
+	}
+	value, err := ast.InterfaceToValue(m)
+	if err != nil {
+		fmt.Println(err) //actual error
+		return nil, err
+	}
+	return &ast.Term{Value: value}, nil
 }
 
 func VPFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	var token string
 	err := ast.As(req.Value, &token)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err) //actual internal error
 		return nil, err
 	}
 	vp, err := verifiableCredentials.VPFROMJWT([]byte(token))
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return errorMessageToTerm(err)
 	}
 
 	err = vp.Verify(verifiableCredentials.IssuerMatch())
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return errorMessageToTerm(err)
 	}
 
 	vcs, err := vp.DecodeEnvelopedCredentials()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err) //actual internal error
 		return nil, err
 	}
 	for _, vc := range vcs {
 		err := vc.Verify(verifiableCredentials.IssuerMatch())
 		if err != nil {
-			fmt.Println(err)
-			return nil, err
+			return errorMessageToTerm(err)
 		}
 	}
 
@@ -73,14 +95,7 @@ func VPFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 		"vcs": vcs,
 	}
 
-	value, err := ast.InterfaceToValue(m)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	t := &ast.Term{Value: value}
-
-	return t, nil
+	return interfaceToTerm(m)
 }
 
 func VPFromJWTResolved(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
@@ -92,14 +107,12 @@ func VPFromJWTResolved(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) 
 	}
 	vp, err := verifiableCredentials.VPFROMJWT([]byte(token))
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return errorMessageToTerm(err)
 	}
 
 	err = vp.Verify(verifiableCredentials.IssuerMatch())
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return errorMessageToTerm(err)
 	}
 
 	vcs, err := vp.DecodeEnvelopedCredentials()
@@ -110,8 +123,7 @@ func VPFromJWTResolved(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) 
 	for _, vc := range vcs {
 		err := vc.Verify(verifiableCredentials.IssuerMatch())
 		if err != nil {
-			fmt.Println(err)
-			return nil, err
+			return errorMessageToTerm(err)
 		}
 	}
 
@@ -127,14 +139,7 @@ func VPFromJWTResolved(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) 
 		"css": rvcs,
 	}
 
-	value, err := ast.InterfaceToValue(m)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	t := &ast.Term{Value: value}
-
-	return t, nil
+	return interfaceToTerm(m)
 }
 
 func VCFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
@@ -146,31 +151,22 @@ func VCFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	}
 	vc, err := verifiableCredentials.VCFromJWT([]byte(token))
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return errorMessageToTerm(err)
 	}
 
 	err = vc.Verify(verifiableCredentials.IssuerMatch())
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return errorMessageToTerm(err)
 	}
 
-	value, err := ast.InterfaceToValue(vc)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	t := &ast.Term{Value: value}
-
-	return t, nil
+	return interfaceToTerm(vc)
 }
 
 func main() {
 	rego.RegisterBuiltin2(
 		&rego.Function{
 			Name: "odrl",
-			Decl: types.NewFunction(types.Args(types.A, types.A), types.B),
+			Decl: types.NewFunction(types.Args(types.A, types.A), types.A),
 		},
 		odrl,
 	)
