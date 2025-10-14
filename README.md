@@ -6,6 +6,14 @@ OPA extension for Gaia-X and ODRL
 
 see doc/deployment folder
 
+## Development 
+to build with Gaia-X OVC use:
+
+`go build --tags=gaiax_ovc -v -o gaiax-opa`
+
+to run the test policies:
+
+` ./gaiax-opa run --server --log-level=debug --addr=:8181 --watch doc/deployment/policies`
 
 ## Contributing
 Contributions are welcome, just open a pull request, please add/extend tests if you add new features.

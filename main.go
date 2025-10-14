@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Posedio/gaia-x-go/compliance"
 	"github.com/Posedio/gaia-x-go/verifiableCredentials"
 	"github.com/Posedio/godrl"
-	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/cmd"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/types"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/types"
 )
 
+const loireComplianceType = "gx:LabelCredential"
+
 func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
-	fmt.Println("calling engine custom built-in")
 	var policy json.RawMessage
 	var odrlReq godrl.OdrlRequest
 	if err := ast.As(pol.Value, &policy); err != nil {
@@ -46,7 +48,8 @@ func interfaceToTerm(a any) (*ast.Term, error) {
 		fmt.Println(err) //actual error
 		return nil, err
 	}
-	return &ast.Term{Value: value}, nil
+
+	return ast.NewTerm(value), nil
 }
 
 func errorMessageToTerm(e error) (*ast.Term, error) {
@@ -58,91 +61,129 @@ func errorMessageToTerm(e error) (*ast.Term, error) {
 		fmt.Println(err) //actual error
 		return nil, err
 	}
-	return &ast.Term{Value: value}, nil
+	return ast.NewTerm(value), nil
 }
 
-func VPFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
-	var token string
-	err := ast.As(req.Value, &token)
-	if err != nil {
-		fmt.Println(err) //actual internal error
-		return nil, err
+type resolveConfig struct {
+	fullResolve          bool
+	validateGXCompliance bool
+}
+
+type resolveOption func(*resolveConfig)
+
+func withFullResolve() resolveOption {
+	return func(config *resolveConfig) {
+		config.fullResolve = true
 	}
-	vp, err := verifiableCredentials.VPFROMJWT([]byte(token))
-	if err != nil {
-		return errorMessageToTerm(err)
+}
+
+func withValidateGXCompliance() resolveOption {
+	return func(config *resolveConfig) {
+		config.validateGXCompliance = true
+	}
+}
+
+type cachedVP struct {
+	vp  *verifiableCredentials.VerifiablePresentation
+	vcs []*verifiableCredentials.VerifiableCredential
+}
+
+func resolveJWT(ctx rego.BuiltinContext, req *ast.Term, opt ...resolveOption) (map[string]interface{}, error) {
+	config := &resolveConfig{}
+	for _, o := range opt {
+		o(config)
 	}
 
-	err = vp.Verify(verifiableCredentials.IssuerMatch())
-	if err != nil {
-		return errorMessageToTerm(err)
+	var cached *cachedVP
+	if v, ok := ctx.InterQueryBuiltinValueCache.Get(req.Value); ok {
+		cached = v.(*cachedVP)
 	}
 
-	vcs, err := vp.DecodeEnvelopedCredentials()
-	if err != nil {
-		fmt.Println(err) //actual internal error
-		return nil, err
+	if cached == nil {
+		cached = &cachedVP{}
+		var token string
+		err := ast.As(req.Value, &token)
+		if err != nil {
+			fmt.Println(err) //actual internal error
+			return nil, fmt.Errorf("internal error: %v", err)
+		}
+		cached.vp, err = verifiableCredentials.VPFROMJWT([]byte(token))
+		if err != nil {
+			return nil, err
+		}
+		cached.vcs, err = cached.vp.DecodeEnvelopedCredentials()
+		if err != nil {
+			fmt.Println(err)
+			return nil, fmt.Errorf("internal error: %v", err)
+		}
 	}
-	for _, vc := range vcs {
+
+	ctx.InterQueryBuiltinValueCache.Insert(req.Value, cached)
+
+	for _, vc := range cached.vcs {
 		err := vc.Verify(verifiableCredentials.IssuerMatch())
 		if err != nil {
-			return errorMessageToTerm(err)
+			return nil, err
 		}
 	}
 
 	m := map[string]interface{}{
-		"vp":  vp,
-		"vcs": vcs,
+		"vp":  cached.vp,
+		"vcs": cached.vcs,
 	}
-
-	return interfaceToTerm(m)
-}
-
-func VPFromJWTResolved(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
-	var token string
-	err := ast.As(req.Value, &token)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	vp, err := verifiableCredentials.VPFROMJWT([]byte(token))
-	if err != nil {
-		return errorMessageToTerm(err)
-	}
-
-	err = vp.Verify(verifiableCredentials.IssuerMatch())
-	if err != nil {
-		return errorMessageToTerm(err)
-	}
-
-	vcs, err := vp.DecodeEnvelopedCredentials()
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	for _, vc := range vcs {
-		err := vc.Verify(verifiableCredentials.IssuerMatch())
+	if config.fullResolve {
+		rvcs, err := cached.vp.DecodeCredentialsAndResolveAllReferences()
 		if err != nil {
-			return errorMessageToTerm(err)
+			fmt.Println(err)
+			return nil, fmt.Errorf("internal error: %v", err)
 		}
+		m["css"] = rvcs
+	}
+	if config.validateGXCompliance {
+		vcWithType, err := cached.vp.GetCredentialsWithType(loireComplianceType) //only loire
+		if err != nil {
+			return nil, fmt.Errorf("error getting credentials for loire compliance type: %v", err)
+		}
+		if len(vcWithType) != 1 {
+			return nil, fmt.Errorf("expected exactly one gaia-x compliance credential type")
+		}
+
+		gxCompliance, err := compliance.ValidateGXCompliance(cached.vp, vcWithType[0])
+		m["compliance"] = gxCompliance
+
 	}
 
-	rvcs, err := vp.DecodeCredentialsAndResolveAllReferences()
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	m := map[string]interface{}{
-		"vp":  vp,
-		"vcs": vcs,
-		"css": rvcs,
-	}
-
-	return interfaceToTerm(m)
+	return m, nil
 }
 
-func VCFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+func vpFromJWT(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+	resolve, err := resolveJWT(ctx, req)
+	if err != nil {
+		return errorMessageToTerm(err)
+	}
+
+	return interfaceToTerm(resolve)
+}
+
+func vpFromJWTGX(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+	resolve, err := resolveJWT(ctx, req, withValidateGXCompliance())
+	if err != nil {
+		return errorMessageToTerm(err)
+	}
+
+	return interfaceToTerm(resolve)
+}
+
+func vpFromJWTResolved(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
+	resolve, err := resolveJWT(ctx, req, withFullResolve())
+	if err != nil {
+		return errorMessageToTerm(err)
+	}
+
+	return interfaceToTerm(resolve)
+}
+
+func vcFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	var token string
 	err := ast.As(req.Value, &token)
 	if err != nil {
@@ -175,21 +216,27 @@ func main() {
 			Name: "resolveVPFromJWT",
 			Decl: types.NewFunction(types.Args(types.A), types.A),
 		},
-		VPFromJWT,
+		vpFromJWT,
 	)
+	rego.RegisterBuiltin1(
+		&rego.Function{
+			Name: "resolveVPFromJWTWithGXCompliance",
+			Decl: types.NewFunction(types.Args(types.A), types.A),
+		},
+		vpFromJWTGX)
 	rego.RegisterBuiltin1(
 		&rego.Function{
 			Name: "resolveVCFromJWT",
 			Decl: types.NewFunction(types.Args(types.A), types.A),
 		},
-		VCFromJWT,
+		vcFromJWT,
 	)
 	rego.RegisterBuiltin1(
 		&rego.Function{
 			Name: "fullResolveVPFromJWT",
 			Decl: types.NewFunction(types.Args(types.A), types.A),
 		},
-		VPFromJWTResolved,
+		vpFromJWTResolved,
 	)
 
 	if err := cmd.RootCommand.Execute(); err != nil {

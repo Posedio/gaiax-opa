@@ -1,64 +1,6 @@
-package verify.legalPerson
-
-default allow := false
-
- valid_issuer:= {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2", "did:web:compliance.lab.gaia-x.eu:main", "did:web:gx-notary.gxdch.dih.telekom.com:v2"}
-
-
-result := {
-    "allow": allow,
-    "errors": deny
-}
-
-allow if {
-    count(deny) == 0
-}
-
-re := resolveVPFromJWT(input.jwt)
-
-deny contains msg if {
-    not re
-    msg := "internal error"
-}
-
-
-deny contains msg if {
-    re.error
-    msg := re.error
-}
-
-deny contains msg if {
-    not re
-    not re.vcs
-    msg := "no vcs resolved "
-}
-
-
-
-all_issuers_in_vp contains issuer if {
-    issuer := re.vcs[_].issuer
-}
-
-# Only allow valid_issuers
-deny contains msg if {
-    some issuer in all_issuers_in_vp
-        not issuer in valid_issuer #see data.json
-    msg := "Only valid_issuer are allowed"
-}
-
-
-odrl_request := {
-        "principal": "https://example.com/per:5234",
-        "target": "http://example.com/document:1234",
-        "action": "use",
-        "requestContext": {
-            "version": "1.0.0",
-            "vcs": re.vcs
-        }
-
-}
-
-  odrl_policy_1 :={
+{
+  "valid_issuer": ["did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2", "did:web:compliance.lab.gaia-x.eu:main", "did:web:gx-notary.gxdch.dih.telekom.com:v2"],
+  "odrl_policy_1" :{
     "@context": "http://www.w3.org/ns/engine.jsonld",
     "@type": "Agreement",
     "uid": "http://what.example.com/policy:6163",
@@ -97,26 +39,4 @@ odrl_request := {
       }
     ]
   }
-
-
-odrlRes := res if {
- res := odrl(odrl_policy_1, odrl_request)
-}
-
-
-deny contains msg if{
-    odrlRes.error
-    msg := odrlRes.error
-}
-
-
-deny contains msg if {
-    not odrlRes
-    msg := "internal error on odrl eval"
-}
-
-
-deny contains msg if{
-    not odrlRes.ok
-    msg := odrlRes.report
 }
