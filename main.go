@@ -8,7 +8,7 @@ import (
 	"github.com/Posedio/gaia-x-go/compliance"
 	"github.com/Posedio/gaia-x-go/verifiableCredentials"
 	"github.com/Posedio/godrl"
-	"github.com/open-policy-agent/opa/cmd"
+	"github.com/open-policy-agent/eopa/cmd"
 	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/types"
@@ -239,7 +239,7 @@ func main() {
 		vpFromJWTResolved,
 	)
 
-	if err := cmd.RootCommand.Execute(); err != nil {
+	if err := cmd.EOPACommand().Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
