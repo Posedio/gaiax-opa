@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine as builder
+FROM golang:1.25-alpine AS builder
 LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
 
 RUN apk update && apk add --no-cache git tzdata build-base
