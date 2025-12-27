@@ -2,7 +2,7 @@ package verify.legalPerson
 
 default allow := false
 
- valid_issuer:= {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2", "did:web:compliance.lab.gaia-x.eu:main", "did:web:gx-notary.gxdch.dih.telekom.com:v2"}
+ valid_issuer:= {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2", "did:web:compliance.lab.gaia-x.eu:main", "did:web:gx-notary.gxdch.dih.telekom.com:v2", "did:web:validate.posedio.com", "did:web:aerospace-digital-exchange.eu:compliance:v2"}
 
 
 result := {

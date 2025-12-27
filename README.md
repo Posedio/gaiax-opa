@@ -15,6 +15,10 @@ to run the test policies:
 
 ` ./gaiax-opa run --server --log-level=debug --addr=:8181 --watch doc/deployment/policies`
 
+or with grpc and decision logs
+
+`:/gaiax-opa run --server --config-file="./doc/examples/opa-config.yaml" --watch ./doc/deployment/policies`
+
 ## Contributing
 Contributions are welcome, just open a pull request, please add/extend tests if you add new features.
 
