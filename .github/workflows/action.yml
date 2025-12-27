@@ -15,7 +15,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.24.6
+      image: golang:1.25
     env:
       GOPATH: ${{ github.workspace }}/.go
     steps:
@@ -48,7 +48,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.24.6
+      image: golang:1.25
     needs: test
     env:
       GOPATH: ${{ github.workspace }}/.go
@@ -65,7 +65,7 @@ jobs:
       - name: Build binary with gaiax_ovc tag
         run: |
           mkdir -p $OUTPUT_NAME-gaiax_ovc
-          go build --tags=gaiax_ovc -buildvcs=false -o $OUTPUT_NAME ./...
+          go build --tags=gaiax_ovc -buildvcs=false -v -o $OUTPUT_NAME
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4

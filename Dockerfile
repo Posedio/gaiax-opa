@@ -1,5 +1,5 @@
-FROM golang:1.24-alpine as builder
-LABEL authors="Philipp Seifert-Kehrer"
+FROM golang:1.25-alpine AS builder
+LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
 
 RUN apk update && apk add --no-cache git tzdata build-base
 
@@ -31,7 +31,7 @@ COPY main.go main.go
 RUN go build --tags=gaiax_ovc -v -o gaiax-opa
 
 FROM alpine
-LABEL authors="Philipp Seifert-Kehrer"
+LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
 
 ENV USER=pos
 ENV GROUP=posedio
