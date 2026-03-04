@@ -2,23 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
 	"github.com/Posedio/gaia-x-go/compliance"
 	"github.com/Posedio/gaia-x-go/verifiableCredentials"
 	"github.com/Posedio/godrl"
-	eopaCmd "github.com/open-policy-agent/eopa/cmd"
-	"github.com/open-policy-agent/eopa/pkg/library"
 	"github.com/open-policy-agent/opa/cmd"
 	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/types"
-
-	_ "github.com/open-policy-agent/eopa/capabilities"
-
-	_ "github.com/open-policy-agent/eopa/pkg/rego_vm"
 )
 
 const loireComplianceType = "gx:LabelCredential"
@@ -41,7 +34,7 @@ func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 		return errorMessageToTerm(err)
 	}
 
-	m := map[string]interface{}{
+	m := map[string]any{
 		"ok":     ok,
 		"report": report,
 	}
@@ -60,7 +53,7 @@ func interfaceToTerm(a any) (*ast.Term, error) {
 }
 
 func errorMessageToTerm(e error) (*ast.Term, error) {
-	m := map[string]interface{}{
+	m := map[string]any{
 		"error": e.Error(),
 	}
 	value, err := ast.InterfaceToValue(m)
@@ -95,7 +88,7 @@ type cachedVP struct { //todo implement cache
 	vcs []*verifiableCredentials.VerifiableCredential
 }
 
-func resolveJWT(ctx rego.BuiltinContext, req *ast.Term, opt ...resolveOption) (map[string]interface{}, error) {
+func resolveJWT(_ rego.BuiltinContext, req *ast.Term, opt ...resolveOption) (map[string]any, error) {
 	config := &resolveConfig{}
 	for _, o := range opt {
 		o(config)
@@ -125,7 +118,7 @@ func resolveJWT(ctx rego.BuiltinContext, req *ast.Term, opt ...resolveOption) (m
 		}
 	}
 
-	m := map[string]interface{}{
+	m := map[string]any{
 		"vp":  cached.vp,
 		"vcs": cached.vcs,
 	}
@@ -201,7 +194,7 @@ func vcFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	return interfaceToTerm(vc)
 }
 
-func main() {
+func init() {
 	rego.RegisterBuiltin2(
 		&rego.Function{
 			Name: "odrl",
@@ -236,31 +229,11 @@ func main() {
 		},
 		vpFromJWTResolved,
 	)
+}
 
-	// from eopa main
-	// run all deferred functions before os.Exit
-	var exit int
-	defer func() {
-		if exit != 0 {
-			os.Exit(exit)
-		}
-	}() // orderly shutdown, run all defer routines
-
-	root := eopaCmd.EOPACommand()
-
-	// setup default modules
-	if err := library.Init(); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		exit = 2
-	}
-
-	if err := root.Execute(); err != nil {
-		var e *cmd.ExitError
-		if errors.As(err, &e) {
-			exit = e.Exit
-		} else {
-			exit = 1
-		}
-		return
+func main() {
+	if err := cmd.RootCommand.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

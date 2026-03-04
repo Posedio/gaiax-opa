@@ -1,19 +1,7 @@
 
-caching:
-  inter_query_builtin_cache:
-    max_size_bytes: 10000000
-    forced_eviction_threshold_percentage: 70
-    stale_entry_eviction_period_seconds: 3600
-    names:
-      jwt:
-        max_num_entries: 200
-
 decision_logs:
   console: true
 
-server:
-  #watch: true
-  address: ":8181"
 
 logging:
   level: debug        # debug | info | warn | error
@@ -22,4 +10,4 @@ logging:
 
 plugins:
   grpc:
-    addr: ":50555"
+    addr: ":50051"

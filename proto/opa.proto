@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package gaiaxopa.v1;
+
+option go_package = "internal/grpcpb";
+
+import "google/protobuf/struct.proto";
+
+service OPAService {
+  rpc Query(QueryRequest) returns (QueryResponse);
+}
+
+message QueryRequest {
+  // path is the data path to evaluate, e.g. "verify/legalPersonData".
+  string path = 1;
+  google.protobuf.Struct input = 2;
+}
+
+message QueryResponse {
+  google.protobuf.Struct result = 1;
+  string error = 2;
+  // short if policies define allowed:=false-> allowed:=true
+  bool allowed = 3;
+}

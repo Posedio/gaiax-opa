@@ -26,13 +26,13 @@
           {
             "ovc:leftOperand": "$.credentialSubject.gx:rulesVersion",
             "operator": "eq",
-            "rightOperand": "CD25.03",
+            "rightOperand": "CD25.10",
             "ovc:credentialSubjectType": "gx:LabelCredential"
           },
           {
             "ovc:leftOperand": "$.credentialSubject.gx:validatedCriteria[:]",
             "operator": "eq",
-            "rightOperand": "https://docs.gaia-x.eu/policy-rules-committee/compliance-document/25.03/criteria_participant/#PA1.1",
+            "rightOperand": "https://docs.gaia-x.eu/policy-rules-committee/compliance-document/25.10/criteria_participant/#PA1.1",
             "ovc:credentialSubjectType": "gx:LabelCredential"
           }
         ]
