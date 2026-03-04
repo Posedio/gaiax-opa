@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26-alpine AS builder
 LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
 
 RUN apk update && apk add --no-cache git tzdata build-base
@@ -26,9 +26,12 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
 COPY main.go main.go
+COPY grpc_plugin.go grpc_plugin.go
+COPY internal/ internal/
 
+ARG BUILD_TAGS="gaiax_ovc grpc"
 
-RUN go build --tags=gaiax_ovc -v -o gaiax-opa
+RUN go build --tags="${BUILD_TAGS}" -v -o gaiax-opa
 
 FROM alpine
 LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
@@ -59,6 +62,6 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin:/
 
 
 EXPOSE 8181/tcp
-#EXPOSE 50055/tcp
+EXPOSE 50051/tcp
 ENTRYPOINT ["/usr/local/bin/gaiax-opa"]
 CMD ["run"]

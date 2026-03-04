@@ -30,6 +30,18 @@ plugins:
     addr: ":50051"
 ```
 
+to build the Docker image (includes both `gaiax_ovc` and `grpc` by default):
+
+```bash
+docker build -t gaiax-opa .
+```
+
+to build without the gRPC plugin:
+
+```bash
+docker build --build-arg BUILD_TAGS=gaiax_ovc -t gaiax-opa .
+```
+
 to run the test policies:
 
 `./gaiax-opa run --server --log-level=debug --addr=:8181 --watch doc/deployment/policies`
