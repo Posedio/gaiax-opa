@@ -1,14 +1,12 @@
-package main
+package builtins
 
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/Posedio/gaia-x-go/compliance"
 	"github.com/Posedio/gaia-x-go/verifiableCredentials"
 	"github.com/Posedio/godrl"
-	"github.com/open-policy-agent/opa/cmd"
 	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/types"
@@ -229,11 +227,4 @@ func init() {
 		},
 		vpFromJWTResolved,
 	)
-}
-
-func main() {
-	if err := cmd.RootCommand.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 }

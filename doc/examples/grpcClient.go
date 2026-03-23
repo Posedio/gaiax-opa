@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"main/internal/grpcpb"
+	"github.com/Posedio/gaiax-opa/internal/grpcpb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

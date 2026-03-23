@@ -2,6 +2,17 @@
 
 OPA extension for Gaia-X and ODRL
 
+## Project structure
+
+```
+api/proto/          # protobuf definitions
+cmd/                # binary entrypoint (main package)
+doc/                # deployment configs and examples
+internal/grpcpb/    # generated protobuf/gRPC code
+pkg/builtins/       # custom OPA built-in functions (reusable)
+pkg/grpcplugin/     # gRPC plugin for OPA (reusable, build tag: grpc)
+```
+
 ## Usage
 
 see doc/deployment folder
@@ -11,17 +22,17 @@ see doc/deployment folder
 
 to build with Gaia-X OVC use:
 
-`go build --tags=gaiax_ovc -v -o gaiax-opa`
+`go build --tags=gaiax_ovc -v -o gaiax-opa ./cmd/`
 
 to build with the gRPC plugin:
 
-`go build --tags=grpc -v -o gaiax-opa`
+`go build --tags=grpc -v -o gaiax-opa ./cmd/`
 
 to build with both Gaia-X OVC and gRPC:
 
-`go build --tags="gaiax_ovc grpc" -v -o gaiax-opa`
+`go build --tags="gaiax_ovc grpc" -v -o gaiax-opa ./cmd/`
 
-The gRPC plugin registers an `OPAService` gRPC server (proto at `proto/opa.proto`).
+The gRPC plugin registers an `OPAService` gRPC server (proto at `api/proto/opa.proto`).
 Enable it in the OPA config file:
 
 ```yaml
@@ -60,8 +71,8 @@ or with grpc and decision logs (note: HTTP listen address must be set via `--add
 protoc \
   --go_out=. --go_opt=paths=import \
   --go-grpc_out=. --go-grpc_opt=paths=import \
-  --proto_path=proto \
-  proto/opa.proto
+  --proto_path=api/proto \
+  api/proto/opa.proto
 ```
 
 

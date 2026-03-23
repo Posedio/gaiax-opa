@@ -1,8 +1,6 @@
 //go:build grpc
 
-// example for grpc plugin
-
-package main
+package grpcplugin
 
 import (
 	"context"
@@ -13,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"main/internal/grpcpb"
+	"github.com/Posedio/gaiax-opa/internal/grpcpb"
 
 	"github.com/open-policy-agent/opa/v1/plugins"
 	"github.com/open-policy-agent/opa/v1/rego"

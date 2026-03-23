@@ -25,13 +25,13 @@ WORKDIR ${BUILDPATH}
 COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
-COPY main.go main.go
-COPY grpc_plugin.go grpc_plugin.go
+COPY cmd/ cmd/
+COPY pkg/ pkg/
 COPY internal/ internal/
 
 ARG BUILD_TAGS="gaiax_ovc grpc"
 
-RUN go build --tags="${BUILD_TAGS}" -v -o gaiax-opa
+RUN go build --tags="${BUILD_TAGS}" -v -o gaiax-opa ./cmd/
 
 FROM alpine
 LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
