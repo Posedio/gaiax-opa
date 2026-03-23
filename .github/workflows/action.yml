@@ -37,16 +37,16 @@ jobs:
         run: go mod download
 
       - name: Run go fmt
-        run: go fmt $(go list ./... | grep -v /vendor/)
+        run: go fmt ./...
 
       - name: Run go vet
-        run: go vet $(go list ./... | grep -v /vendor/)
+        run: go vet -buildvcs=false ./...
 
       - name: Run tests with tag gaiax_ovc
-        run: go test --tags=gaiax_ovc -race $(go list ./... | grep -v /vendor/)
+        run: go test --tags=gaiax_ovc -buildvcs=false -race ./...
 
       - name: Run tests with tags gaiax_ovc and grpc
-        run: go test --tags="gaiax_ovc grpc" -race $(go list ./... | grep -v /vendor/)
+        run: go test --tags="gaiax_ovc grpc" -buildvcs=false -race ./...
 
   build:
     runs-on: ubuntu-latest
@@ -66,14 +66,10 @@ jobs:
         run: go mod download
 
       - name: Build binary with gaiax_ovc tag
-        run: |
-          mkdir -p $OUTPUT_NAME-gaiax_ovc
-          go build --tags=gaiax_ovc -buildvcs=false -v -o $OUTPUT_NAME
+        run: go build --tags=gaiax_ovc -buildvcs=false -v -o $OUTPUT_NAME ./cmd/
 
       - name: Build binary with gaiax_ovc and grpc tags
-        run: |
-          mkdir -p $OUTPUT_NAME-gaiax_ovc-grpc
-          go build --tags="gaiax_ovc grpc" -buildvcs=false -v -o $OUTPUT_NAME-gaiax_ovc-grpc/$OUTPUT_NAME
+        run: go build --tags="gaiax_ovc grpc" -buildvcs=false -v -o $OUTPUT_NAME-grpc ./cmd/
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
