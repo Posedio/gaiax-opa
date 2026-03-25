@@ -11,6 +11,7 @@ doc/                # deployment configs and examples
 internal/grpcpb/    # generated protobuf/gRPC code
 pkg/builtins/       # custom OPA built-in functions (reusable)
 pkg/grpcplugin/     # gRPC plugin for OPA (reusable, build tag: grpc)
+pkg/danubeplugin/   # Danube plugin for OPA (reusable, build tag: danube)
 ```
 
 ## Usage
@@ -32,6 +33,14 @@ to build with both Gaia-X OVC and gRPC:
 
 `go build --tags="gaiax_ovc grpc" -v -o gaiax-opa ./cmd/`
 
+to build with the Danube plugin:
+
+`go build --tags=danube -v -o gaiax-opa ./cmd/`
+
+to build with all plugins:
+
+`go build --tags="gaiax_ovc grpc danube" -v -o gaiax-opa ./cmd/`
+
 The gRPC plugin registers an `OPAService` gRPC server (proto at `api/proto/opa.proto`).
 Enable it in the OPA config file:
 
@@ -39,6 +48,21 @@ Enable it in the OPA config file:
 plugins:
   grpc:
     addr: ":50051"
+```
+
+The Danube plugin integrates OPA with a Danube service for credential issuance.
+Enable it in the OPA config file:
+
+```yaml
+plugins:
+  danube:
+    keyPath: "/path/to/private.key"
+    sigAlgo: "EdDSA"
+    issuer: "did:web:example.com"
+    verificationMethod: "did:web:example.com#key-1"
+    path: "/danube"
+    policy: "data.verify.legalPerson"
+    idPrefix: "https://example.com/credentials"
 ```
 
 to build the Docker image (includes both `gaiax_ovc` and `grpc` by default):

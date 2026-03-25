@@ -11,3 +11,11 @@ logging:
 plugins:
   grpc:
     addr: ":50051"
+  danube:
+    issuer: "did:web:did.dumss.me"
+    keyPath: "key.pem"
+    sigAlgo: "PS256"
+    verificationMethod: "did:web:did.dumss.me#v1-2026"
+    path: "/danube"
+    policy: "data.compliance.legalPerson"
+    idPrefix: "https://example.com/trustedParty"

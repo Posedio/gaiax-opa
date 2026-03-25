@@ -119,7 +119,6 @@ type opaServiceServer struct {
 func (s *opaServiceServer) Query(ctx context.Context, req *grpcpb.QueryRequest) (*grpcpb.QueryResponse, error) {
 	query := "data." + strings.ReplaceAll(req.GetPath(), "/", ".")
 	input := req.GetInput().AsMap()
-
 	rs, err := rego.New(
 		rego.Query(query),
 		rego.Input(input),
