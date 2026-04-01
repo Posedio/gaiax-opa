@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/Posedio/gaia-x-go/signer"
 	vc "github.com/Posedio/gaia-x-go/verifiableCredentials"
+	"github.com/Posedio/gaiax-opa/pkg/decisionlog"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/open-policy-agent/opa/v1/plugins"
@@ -160,14 +160,13 @@ func (p *danubePlugin) danubeHandler(w http.ResponseWriter, r *http.Request) {
 		rego.Store(p.manager.Store),
 		rego.Compiler(p.manager.GetCompiler()),
 	).Eval(r.Context())
+	decisionlog.Log(r.Context(), p.manager, p.config.Path, r.RemoteAddr, m, rs, err, nil)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	re := collectResults(rs)
-
-	log.Printf("policy result: %v", re)
+	re := decisionlog.CollectResults(rs)
 
 	if allowed, _ := re["allow"].(bool); !allowed {
 		errs, _ := re["deny"].([]any)
@@ -259,21 +258,4 @@ func (p *danubePlugin) Reconfigure(ctx context.Context, config any) {
 	if err := p.Start(ctx); err != nil {
 		p.manager.Logger().Error("Danube plugin: reconfigure failed: %v", err)
 	}
-}
-
-func collectResults(rs rego.ResultSet) map[string]interface{} {
-	if len(rs) == 1 && len(rs[0].Expressions) == 1 {
-		if m, ok := rs[0].Expressions[0].Value.(map[string]interface{}); ok {
-			return m
-		}
-		return map[string]interface{}{"result": rs[0].Expressions[0].Value}
-	}
-
-	all := make([]interface{}, 0, len(rs))
-	for _, r := range rs {
-		for _, expr := range r.Expressions {
-			all = append(all, expr.Value)
-		}
-	}
-	return map[string]interface{}{"results": all}
 }

@@ -1,11 +1,10 @@
+server:
+  #logger_plugin: file_logger
+
 
 decision_logs:
-  console: true
-
-
-logging:
-  level: debug        # debug | info | warn | error
-  format: console         # json recommended for production
+  plugin: file_logger
+  #console: true
 
 
 plugins:
@@ -19,3 +18,10 @@ plugins:
     path: "/danube"
     policy: "data.compliance.legalPerson"
     idPrefix: "https://example.com/trustedParty"
+  file_logger:
+    path: ./decision.log
+    max_size_mb: 100
+    max_age_days: 28
+    max_backups: 3
+    #compress: true
+    level: debug

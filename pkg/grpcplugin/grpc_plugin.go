@@ -10,12 +10,14 @@ import (
 	"time"
 
 	"github.com/Posedio/gaiax-opa/internal/grpcpb"
+	"github.com/Posedio/gaiax-opa/pkg/decisionlog"
 
 	"github.com/open-policy-agent/opa/v1/plugins"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/runtime"
 	"github.com/open-policy-agent/opa/v1/util"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -117,42 +119,31 @@ type opaServiceServer struct {
 func (s *opaServiceServer) Query(ctx context.Context, req *grpcpb.QueryRequest) (*grpcpb.QueryResponse, error) {
 	query := "data." + strings.ReplaceAll(req.GetPath(), "/", ".")
 	input := req.GetInput().AsMap()
-	rs, err := rego.New(
+	rs, evalErr := rego.New(
 		rego.Query(query),
 		rego.Input(input),
 		rego.Store(s.manager.Store),
 		rego.Compiler(s.manager.GetCompiler()),
 	).Eval(ctx)
 
-	if err != nil {
-		return &grpcpb.QueryResponse{Error: err.Error()}, nil
+	remoteAddr := "grpc"
+	if p, ok := peer.FromContext(ctx); ok {
+		remoteAddr = p.Addr.String()
+	}
+	decisionlog.Log(ctx, s.manager, req.GetPath(), remoteAddr, input, rs, evalErr, nil)
+
+	if evalErr != nil {
+		return &grpcpb.QueryResponse{Error: evalErr.Error()}, nil
 	}
 	if len(rs) == 0 {
 		return &grpcpb.QueryResponse{Error: "undefined"}, nil
 	}
 
-	result, err := structpb.NewStruct(collectResults(rs))
+	result, err := structpb.NewStruct(decisionlog.CollectResults(rs))
 	if err != nil {
 		return &grpcpb.QueryResponse{Error: fmt.Sprintf("serialize result: %v", err)}, nil
 	}
 	return &grpcpb.QueryResponse{Result: result, Allowed: allAllowed(rs)}, nil
-}
-
-func collectResults(rs rego.ResultSet) map[string]interface{} {
-	if len(rs) == 1 && len(rs[0].Expressions) == 1 {
-		if m, ok := rs[0].Expressions[0].Value.(map[string]interface{}); ok {
-			return m
-		}
-		return map[string]interface{}{"result": rs[0].Expressions[0].Value}
-	}
-
-	all := make([]interface{}, 0, len(rs))
-	for _, r := range rs {
-		for _, expr := range r.Expressions {
-			all = append(all, expr.Value)
-		}
-	}
-	return map[string]interface{}{"results": all}
 }
 
 func allAllowed(rs rego.ResultSet) bool {
