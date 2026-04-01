@@ -29,7 +29,7 @@ COPY cmd/ cmd/
 COPY pkg/ pkg/
 COPY internal/ internal/
 
-ARG BUILD_TAGS="gaiax_ovc grpc"
+ARG BUILD_TAGS="gaiax_ovc grpc danube"
 
 RUN go build --tags="${BUILD_TAGS}" -v -o gaiax-opa ./cmd/
 

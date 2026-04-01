@@ -9,9 +9,9 @@ api/proto/          # protobuf definitions
 cmd/                # binary entrypoint (main package)
 doc/                # deployment configs and examples
 internal/grpcpb/    # generated protobuf/gRPC code
-pkg/builtins/       # custom OPA built-in functions (reusable)
-pkg/grpcplugin/     # gRPC plugin for OPA (reusable, build tag: grpc)
-pkg/danubeplugin/   # Danube plugin for OPA (reusable, build tag: danube)
+pkg/builtins/       # custom OPA built-in functions
+pkg/grpcplugin/     # gRPC plugin for OPA (build tag: grpc)
+pkg/danubeplugin/   # Danube plugin for OPA (build tag: danube)
 ```
 
 ## Usage
@@ -60,7 +60,7 @@ plugins:
     sigAlgo: "EdDSA"
     issuer: "did:web:example.com"
     verificationMethod: "did:web:example.com#key-1"
-    path: "/danube"
+    path: "/danube" #host is the same as the OPA server, currently not available in the grpc plugin
     policy: "data.verify.legalPerson"
     idPrefix: "https://example.com/credentials"
 ```
