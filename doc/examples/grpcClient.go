@@ -25,8 +25,8 @@ func main() {
 	})
 
 	resp, err := client.Query(ctx, &grpcpb.QueryRequest{
-		//Path:  "verify/legalPerson",
-		Path:  "verify/legalPersonData",
+		Path: "verify/legalPerson",
+		//Path:  "verify/legalPersonData",
 		Input: input,
 	})
 	if err != nil {

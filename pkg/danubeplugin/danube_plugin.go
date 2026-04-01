@@ -1,5 +1,3 @@
-//go:build danube
-
 package danubeplugin
 
 import (

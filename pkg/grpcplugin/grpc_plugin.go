@@ -1,5 +1,3 @@
-//go:build grpc
-
 package grpcplugin
 
 import (

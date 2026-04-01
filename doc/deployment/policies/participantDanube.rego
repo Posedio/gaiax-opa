@@ -14,7 +14,7 @@ allow if {
     count(deny) == 0
 }
 
-re := resolveVPFromJWT(input.jwt)
+re := resolveVPFromJWTWithGXCompliance(input.jwt)
 
 deny contains msg if {
     not re
