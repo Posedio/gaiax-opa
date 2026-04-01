@@ -5,13 +5,15 @@ OPA extension for Gaia-X and ODRL
 ## Project structure
 
 ```
-api/proto/          # protobuf definitions
-cmd/                # binary entrypoint (main package)
-doc/                # deployment configs and examples
-internal/grpcpb/    # generated protobuf/gRPC code
-pkg/builtins/       # custom OPA built-in functions
-pkg/grpcplugin/     # gRPC plugin for OPA (build tag: grpc)
-pkg/danubeplugin/   # Danube plugin for OPA (build tag: danube)
+api/proto/              # protobuf definitions
+cmd/                    # binary entrypoint (main package)
+doc/                    # deployment configs and examples
+internal/grpcpb/        # generated protobuf/gRPC code
+pkg/builtins/           # custom OPA built-in functions
+pkg/decisionlog/        # shared decision log helper used by all plugins
+pkg/grpcplugin/         # gRPC plugin (build tag: grpc)
+pkg/danubeplugin/       # Danube credential issuance plugin (build tag: danube)
+pkg/externalpdp/        # external PDP built-in + plugin (build tag: external_pdp)
 ```
 
 ## Usage
@@ -37,9 +39,17 @@ to build with the Danube plugin:
 
 `go build --tags=danube -v -o gaiax-opa ./cmd/`
 
+to build with the file logger plugin (structured JSON log rotation via lumberjack):
+
+`go build --tags=file_logger -v -o gaiax-opa ./cmd/`
+
+to build with the external PDP plugin:
+
+`go build --tags=external_pdp -v -o gaiax-opa ./cmd/`
+
 to build with all plugins:
 
-`go build --tags="gaiax_ovc grpc danube" -v -o gaiax-opa ./cmd/`
+`go build --tags="gaiax_ovc grpc danube file_logger external_pdp" -v -o gaiax-opa ./cmd/`
 
 The gRPC plugin registers an `OPAService` gRPC server (proto at `api/proto/opa.proto`).
 Enable it in the OPA config file:
@@ -63,6 +73,43 @@ plugins:
     path: "/danube" #host is the same as the OPA server, currently not available in the grpc plugin
     policy: "data.verify.legalPerson"
     idPrefix: "https://example.com/credentials"
+```
+
+The `external_pdp` plugin registers the `externalPDP(source, input)` built-in function.
+Sources are named HTTP endpoints configured server-side, so Rego policies stay decoupled from URLs.
+Enable it in the OPA config file:
+
+```yaml
+plugins:
+  external_pdp:
+    sources:
+      other_opa: "http://other-opa:8181/v1/data/my/policy"
+      legacy_pdp: "https://pdp.example.com/decide"
+```
+
+Usage in Rego:
+
+```rego
+ex_result := externalPDP("other_opa", input)
+
+deny contains msg if {
+    ex_result.error
+    msg := ex_result.error
+}
+
+allow if {
+    not ex_result.error
+    ex_result.allow
+}
+```
+
+The function unwraps OPA's `{"result": ...}` envelope automatically.
+On network or configuration errors it returns `{"error": "..."}` so policies can handle failures explicitly rather than aborting evaluation.
+
+
+```yaml
+decision_logs:
+  console: true
 ```
 
 to build the Docker image (includes both `gaiax_ovc` and `grpc` by default):

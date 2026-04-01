@@ -25,3 +25,7 @@ plugins:
     max_backups: 3
     #compress: true
     level: debug
+  external_pdp:
+    sources:
+      legalPerson: "http://127.0.0.1:8181/v1/data/verify/legalPersonData"
+      danube: "http://127.0.0.1:8181/danube"

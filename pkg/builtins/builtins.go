@@ -29,7 +29,7 @@ func odrl(_ rego.BuiltinContext, pol, req *ast.Term) (*ast.Term, error) {
 	loadedPol, err := godrl.LoadPolicy(policy)
 	ok, report, err := godrl.Evaluate(loadedPol, odrlReq)
 	if err != nil {
-		return errorMessageToTerm(err)
+		return ErrorMessageToTerm(err)
 	}
 
 	m := map[string]any{
@@ -50,7 +50,7 @@ func interfaceToTerm(a any) (*ast.Term, error) {
 	return ast.NewTerm(value), nil
 }
 
-func errorMessageToTerm(e error) (*ast.Term, error) {
+func ErrorMessageToTerm(e error) (*ast.Term, error) {
 	m := map[string]any{
 		"error": e.Error(),
 	}
@@ -148,7 +148,7 @@ func resolveJWT(_ rego.BuiltinContext, req *ast.Term, opt ...resolveOption) (map
 func vpFromJWT(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	resolve, err := resolveJWT(ctx, req)
 	if err != nil {
-		return errorMessageToTerm(err)
+		return ErrorMessageToTerm(err)
 	}
 
 	return interfaceToTerm(resolve)
@@ -157,7 +157,7 @@ func vpFromJWT(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 func vpFromJWTGX(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	resolve, err := resolveJWT(ctx, req, withValidateGXCompliance())
 	if err != nil {
-		return errorMessageToTerm(err)
+		return ErrorMessageToTerm(err)
 	}
 
 	return interfaceToTerm(resolve)
@@ -166,7 +166,7 @@ func vpFromJWTGX(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 func vpFromJWTResolved(ctx rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	resolve, err := resolveJWT(ctx, req, withFullResolve())
 	if err != nil {
-		return errorMessageToTerm(err)
+		return ErrorMessageToTerm(err)
 	}
 
 	return interfaceToTerm(resolve)
@@ -181,12 +181,12 @@ func vcFromJWT(_ rego.BuiltinContext, req *ast.Term) (*ast.Term, error) {
 	}
 	vc, err := verifiableCredentials.VCFromJWT([]byte(token))
 	if err != nil {
-		return errorMessageToTerm(err)
+		return ErrorMessageToTerm(err)
 	}
 
 	err = vc.Verify(verifiableCredentials.IssuerMatch())
 	if err != nil {
-		return errorMessageToTerm(err)
+		return ErrorMessageToTerm(err)
 	}
 
 	return interfaceToTerm(vc)

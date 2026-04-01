@@ -10,6 +10,19 @@ result := {
     "errors": deny
 }
 
+ex_result := externalPDP("legalPerson", {"input":input})
+
+deny contains msg if {
+    ex_result.error
+    msg := ex_result.error
+}
+
+allow if {
+    not ex_result.error
+    ex_result.allow
+}
+
+
 allow if {
     count(deny) == 0
 }
