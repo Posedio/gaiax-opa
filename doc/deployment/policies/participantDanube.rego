@@ -2,15 +2,18 @@ package compliance.legalPerson
 
 default allow := false
 
-valid_issuer:= {"did:web:gx-notary.arsys.es:v2",  "did:web:did.dumss.me", "did:web:www.delta-dao.com:notary:v2", "did:web:compliance.lab.gaia-x.eu:main", "did:web:gx-notary.gxdch.dih.telekom.com:v2", "did:web:validate.posedio.com", "did:web:aerospace-digital-exchange.eu:compliance:v2", "did:web:aerospace-digital-exchange.eu:notary:v2", "did:web:did.dumss.me:verena"}
-
-
 result := {
     "allow": allow,
-    "errors": deny
+    "errors": deny,
+    "suffix": suffix,
 }
 
-ex_result := externalPDP("legalPerson", {"input":input})
+ex_result:= externalPDP("legalPerson", {"input":input})
+
+deny contains msg if {
+    not ex_result
+    msg := "external PDP unavailable"
+}
 
 deny contains msg if {
     ex_result.error
@@ -22,8 +25,9 @@ allow if {
     ex_result.allow
 }
 
-
 allow if {
+    ex_result
+    not ex_result.error
     count(deny) == 0
 }
 
@@ -39,27 +43,6 @@ deny contains msg if {
     re.error
     msg := re.error
 }
-
-deny contains msg if {
-    not re
-    not re.vcs
-    msg := "no vcs resolved "
-}
-
-
-
-all_issuers_in_vp contains issuer if {
-    issuer := re.vcs[_].issuer
-}
-
-# Only allow valid_issuers
-deny contains msg if {
-    some issuer in all_issuers_in_vp
-        not issuer in valid_issuer #see data.json
-    msg := "Only valid_issuer are allowed"
-}
-
-
 
 vat_id_vcs contains vc if {
     some vc in re.vcs
@@ -111,3 +94,11 @@ cs := {"gx:vatID": vat_id, "gx:countryCode": country_code, "schema:name": schema
     some name_vc in schema_name_vcs
     schema_name := name_vc.credentialSubject["schema:name"]
 }
+
+suffix := cs["schema:name"]
+
+context := {"np": "http://newparticipant.test/ns#"}
+
+type := "np:Participant"
+
+

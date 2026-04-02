@@ -4,6 +4,8 @@ github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Posedio/gaia-x-go v0.2.39 h1:gu5lNZRu3t+VzfMKkpOR6l1mDp3YiAIPu69Q/QwEA1Q=
 github.com/Posedio/gaia-x-go v0.2.39/go.mod h1:hFZC4igWO9SOSwvFPZUMjVCfH/Jglk/N4lRxoQjx/mg=
+github.com/Posedio/gaia-x-go v0.2.40 h1:ByL0Zf0JSHlonwdBm/0KwXWTYdkrzE/sUloNCWy8oJY=
+github.com/Posedio/gaia-x-go v0.2.40/go.mod h1:hFZC4igWO9SOSwvFPZUMjVCfH/Jglk/N4lRxoQjx/mg=
 github.com/Posedio/godrl v0.1.2 h1:zrXXKW+/UiIe1avOYFSv5HBNBYdrWn/329i/iIG9ArA=
 github.com/Posedio/godrl v0.1.2/go.mod h1:KQTwMuJt8gwmEbuqn6mKvVnIUzI9xlJIOR8cPy22B4U=
 github.com/agnivade/levenshtein v1.2.1 h1:EHBY3UOn1gwdy/VbFwgo4cxecRznFk7fKWN1KOX7eoM=

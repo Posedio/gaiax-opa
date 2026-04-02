@@ -187,23 +187,47 @@ func (p *danubePlugin) danubeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	companyRaw, ok := cs["schema:name"].(string)
+	suffixRaw, ok := re["suffix"].(string)
 	if !ok {
-		writeJSONError(w, http.StatusInternalServerError, "schema:name not found in policy result")
+		writeJSONError(w, http.StatusInternalServerError, "suffix for vc id not found in policy result")
 		return
 	}
-	company := url.PathEscape(companyRaw)
 
-	vcN, err := vc.NewEmptyVerifiableCredentialV2(
-		vc.WithVCID(p.config.IDPrefix+"/"+company),
+	suffix := url.PathEscape(suffixRaw)
+
+	options := []vc.VerifiableCredentialOption{
+		vc.WithVCID(p.config.IDPrefix + "/" + suffix),
 		vc.WithValidFromNow(),
 		vc.WithGaiaXContext(),
 		vc.WithIssuer(p.config.Issuer),
-		vc.WithValidFor(time.Hour*24*365))
+		vc.WithValidFor(time.Hour * 24 * 365), //todo option
+	}
+	typeRaw, ok := re["type"].(string)
+	if ok {
+		options = append(options, vc.WithAdditionalTypes(typeRaw))
+	}
+
+	contexRaw, ok := re["context"].(map[string]any)
+	if ok {
+		for id, ele := range contexRaw {
+			if id == "" {
+				if _, k := ele.(string); k {
+					options = append(options, vc.WithContextString(ele.(string)))
+				}
+			} else {
+				if _, k := ele.(string); k {
+					options = append(options, vc.WithContextMapping(id, ele.(string)))
+				}
+			}
+		}
+	}
+
+	vcN, err := vc.NewEmptyVerifiableCredentialV2(options...)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	cs["@id"] = vcN.ID + "#cs"
 	err = vcN.AddToCredentialSubject(cs)
 	if err != nil {

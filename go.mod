@@ -3,7 +3,7 @@ module github.com/Posedio/gaiax-opa
 go 1.26
 
 require (
-	github.com/Posedio/gaia-x-go v0.2.39
+	github.com/Posedio/gaia-x-go v0.2.40
 	github.com/Posedio/godrl v0.1.2
 	github.com/lestrrat-go/jwx/v3 v3.0.13
 	github.com/open-policy-agent/opa v1.15.1

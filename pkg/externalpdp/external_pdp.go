@@ -20,10 +20,11 @@ import (
 
 const pluginName = "external_pdp"
 
-// registry is written by the plugin on Start/Reconfigure and read by the built-in.
+// instance is set on Start and cleared on Stop.
+// The built-in reads sources directly from it, so no separate registry copy is needed.
 var (
 	mu       sync.RWMutex
-	registry map[string]string // source name -> URL
+	instance *plugin
 )
 
 func init() {
@@ -68,7 +69,7 @@ type plugin struct {
 
 func (p *plugin) Start(_ context.Context) error {
 	mu.Lock()
-	registry = p.config.Sources
+	instance = p
 	mu.Unlock()
 	p.manager.UpdatePluginStatus(pluginName, &plugins.Status{State: plugins.StateOK})
 	p.manager.Logger().Info("external_pdp plugin: registered %d source(s)", len(p.config.Sources))
@@ -77,17 +78,22 @@ func (p *plugin) Start(_ context.Context) error {
 
 func (p *plugin) Stop(_ context.Context) {
 	mu.Lock()
-	registry = nil
+	instance = nil
 	mu.Unlock()
 	p.manager.UpdatePluginStatus(pluginName, &plugins.Status{State: plugins.StateNotReady})
 }
 
 func (p *plugin) Reconfigure(_ context.Context, cfg any) {
-	c := cfg.(config)
 	mu.Lock()
-	registry = c.Sources
-	p.config = c
+	p.config = cfg.(config)
 	mu.Unlock()
+}
+
+func (p *plugin) source(name string) (string, bool) {
+	mu.RLock()
+	defer mu.RUnlock()
+	url, ok := p.config.Sources[name]
+	return url, ok
 }
 
 // callExternalPDP is the built-in implementation for externalPDP(source, input).
@@ -98,25 +104,33 @@ func callExternalPDP(bctx rego.BuiltinContext, sourceTerm, inputTerm *ast.Term) 
 	}
 
 	mu.RLock()
-	url, ok := registry[sourceName]
+	p := instance
 	mu.RUnlock()
+	if p == nil {
+		return builtins.ErrorMessageToTerm(fmt.Errorf("externalPDP: plugin not started"))
+	}
+
+	url, ok := p.source(sourceName)
 	if !ok {
 		return builtins.ErrorMessageToTerm(fmt.Errorf("externalPDP: unknown source %q", sourceName))
 	}
 
 	var input any
 	if err := ast.As(inputTerm.Value, &input); err != nil {
-		return nil, fmt.Errorf("externalPDP: invalid input: %w", err)
+		p.manager.Logger().Error("externalPDP: invalid input: %v", err)
+		return builtins.ErrorMessageToTerm(fmt.Errorf("externalPDP: invalid input: %w", err))
 	}
 
 	body, err := json.Marshal(input)
 	if err != nil {
-		return nil, fmt.Errorf("externalPDP: marshal input: %w", err)
+		p.manager.Logger().Error("externalPDP: marshal input: %v", err)
+		return builtins.ErrorMessageToTerm(fmt.Errorf("externalPDP: marshal input: %w", err))
 	}
 
 	req, err := http.NewRequestWithContext(bctx.Context, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
-		return nil, fmt.Errorf("externalPDP: build request: %w", err)
+		p.manager.Logger().Error("externalPDP: create request to %q: %v", sourceName, err)
+		return builtins.ErrorMessageToTerm(fmt.Errorf("externalPDP: create request to %q: %w", sourceName, err))
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -139,6 +153,7 @@ func callExternalPDP(bctx rego.BuiltinContext, sourceTerm, inputTerm *ast.Term) 
 
 	val, err := ast.InterfaceToValue(result)
 	if err != nil {
+		p.manager.Logger().Error("externalPDP: convert result: %v", err)
 		return nil, fmt.Errorf("externalPDP: convert result: %w", err)
 	}
 	return ast.NewTerm(val), nil
