@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -20,6 +21,7 @@ import (
 	"github.com/open-policy-agent/opa/v1/plugins"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/runtime"
+	"github.com/open-policy-agent/opa/v1/topdown"
 	"github.com/open-policy-agent/opa/v1/util"
 )
 
@@ -38,6 +40,7 @@ type danubeConfig struct {
 	Path               string `json:"path"`
 	Policy             string `json:"policy"`
 	IDPrefix           string `json:"idPrefix"`
+	Debug              bool   `json:"debug"`
 }
 
 type danubeFactory struct{}
@@ -154,12 +157,19 @@ func (p *danubePlugin) danubeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rs, err := rego.New(
+	regoOpts := []func(*rego.Rego){
 		rego.Query(p.config.Policy),
 		rego.Input(m),
 		rego.Store(p.manager.Store),
 		rego.Compiler(p.manager.GetCompiler()),
-	).Eval(r.Context())
+	}
+	if p.config.Debug {
+		regoOpts = append(regoOpts,
+			rego.EnablePrintStatements(true),
+			rego.PrintHook(topdown.NewPrintHook(os.Stderr)),
+		)
+	}
+	rs, err := rego.New(regoOpts...).Eval(r.Context())
 	decisionlog.Log(r.Context(), p.manager, p.config.Path, r.RemoteAddr, m, rs, err, nil)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
@@ -168,17 +178,26 @@ func (p *danubePlugin) danubeHandler(w http.ResponseWriter, r *http.Request) {
 
 	re := decisionlog.CollectResults(rs)
 
-	if allowed, _ := re["allow"].(bool); !allowed {
-		errs, _ := re["deny"].([]any)
-		msgs := make([]string, 0, len(errs))
-		for _, e := range errs {
-			if s, ok := e.(string); ok {
-				msgs = append(msgs, s)
-			}
+	errs, _ := re["deny"].([]any)
+	msgs := make([]string, 0, len(errs))
+	for _, e := range errs {
+		if s, ok := e.(string); ok {
+			msgs = append(msgs, s)
 		}
+	}
+
+	if allowed, _ := re["allow"].(bool); !allowed {
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(map[string]any{"allow": false, "errors": msgs})
 		return
+	}
+	if _, ok := re["deny"]; ok {
+		if len(msgs) > 0 {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode(map[string]any{"allow": false, "errors": msgs})
+			return
+		}
+
 	}
 
 	cs, ok := re["cs"].(map[string]any)

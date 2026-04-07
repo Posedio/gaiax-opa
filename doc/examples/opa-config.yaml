@@ -27,5 +27,5 @@ plugins:
     level: debug
   external_pdp:
     sources:
-      legalPerson: "http://127.0.0.1:8181/v1/data/verify/legalPersonData"
+      legalPerson: "http://127.0.0.1:8181/v1/data/verify/legalPerson"
       danube: "http://127.0.0.1:8181/danube"
