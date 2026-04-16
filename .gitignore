@@ -1,5 +1,6 @@
 *.crt
-*.key
+*.pem
+*.log
 .idea/
 logs/
 .DS_Store

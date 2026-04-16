@@ -1,0 +1,38 @@
+services:
+  opa:
+    build:
+      context: ../../..
+      dockerfile: doc/deployment/docker-compose/Dockerfile
+    restart: unless-stopped
+    command:
+      - "run"
+      - "--server"
+      - "--log-level=debug"
+      - "--addr=:8181"
+      - "--config-file=/etc/gaiax-opa/opa-config.yaml"
+      - "--watch"
+      - "/policies"
+    volumes:
+      - type: bind
+        source: ../../examples/policies
+        target: /policies
+        read_only: true
+      - type: bind
+        source: ../../examples/opa-config.yaml
+        target: /etc/gaiax-opa/opa-config.yaml
+        read_only: true
+      - type: bind
+        source: ../../examples/pythonScripts
+        target: /scripts
+        read_only: true
+      - type: bind
+        source: ../../../key.pem
+        target: /run/secrets/key.pem
+        read_only: true
+    ports:
+      - "127.0.0.1:8181:8181"
+      - "127.0.0.1:50051:50051" #grpc
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
