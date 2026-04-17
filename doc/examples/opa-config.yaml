@@ -12,6 +12,7 @@ plugins:
     addr: ":50051"
   danube:
     issuer: "did:web:did.dumss.me"
+    #keyPath: "/run/secrets/key.pem" #for docker compose
     keyPath: "key.pem"
     sigAlgo: "PS256"
     verificationMethod: "did:web:did.dumss.me#v1-2026"
@@ -29,3 +30,7 @@ plugins:
     sources:
       legalPerson: "http://127.0.0.1:8181/v1/data/verify/legalPerson"
       danube: "http://127.0.0.1:8181/danube"
+  cli_exec:
+    commands:
+      #validate_vat: ["/usr/bin/python3", "/scripts/validate_vat.py"] #for docker compose
+      validate_vat: ["python3", "./doc/examples/pythonScripts/validate_vat.py"]

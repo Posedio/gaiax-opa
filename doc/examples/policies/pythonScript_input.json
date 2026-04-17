@@ -1,0 +1,27 @@
+{
+  "input": {
+    "expected_country": "AT",
+    "vcs": [
+      {
+        "@context": [
+          "https://www.w3.org/ns/credentials/v2",
+          "https://w3id.org/gaia-x/development#"
+        ],
+        "credentialSubject": {
+          "gx:countryCode": "AT",
+          "gx:vatID": "ATU75917607",
+          "id": "https://did.dumss.me/LRN#CS",
+          "type": "gx:VatID"
+        },
+        "id": "https://did.dumss.me/LRN",
+        "issuer": "did:web:www.delta-dao.com:notary:v2",
+        "type": [
+          "VerifiableCredential",
+          "gx:VatID"
+        ],
+        "validFrom": "2025-04-29T10:59:39.997Z",
+        "validUntil": "2026-04-29T10:59:39.997Z"
+      }
+    ]
+  }
+}

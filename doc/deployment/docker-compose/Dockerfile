@@ -1,46 +1,29 @@
+# Extends the base gaiax-opa image with Python for cli_exec scripts.
+# The main Dockerfile stays free of Python; add or remove this layer
+# depending on whether your cli_exec commands require it.
+ARG BUILD_TAGS="gaiax_ovc grpc danube file_logger external_pdp cli_exec"
+
 FROM golang:1.26-alpine AS builder
-LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
-
 RUN apk update && apk add --no-cache git tzdata build-base
-
 ARG BUILDPATH=/go/src/github.com/Posedio/gaiax-opa
-
-#https://stackoverflow.com/a/55757473/12429735
-ENV USER=pos
-ENV UID=60000
-ENV GROUP=posedio
-ENV GID=50000
-
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "$(pwd)" \
-    --no-create-home \
-    --uid "$UID" \
-    "$USER"
-
+ENV USER=pos UID=60000 GROUP=posedio GID=50000
+RUN adduser --disabled-password --gecos "" --home "$(pwd)" --no-create-home --uid "$UID" "$USER"
 RUN addgroup -g "$GID" "$GROUP" && addgroup "$USER" "$GROUP"
-
 WORKDIR ${BUILDPATH}
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 COPY internal/ internal/
-
-ARG BUILD_TAGS="gaiax_ovc grpc danube file_logger external_pdp cli_exec"
-
+ARG BUILD_TAGS
 RUN go build --tags="${BUILD_TAGS}" -v -o gaiax-opa ./cmd/
 
 FROM alpine
 LABEL authors="Philipp Seifert-Kehrer,Stefan Dumss"
-
-ENV USER=pos
-ENV GROUP=posedio
-
-
+ENV USER=pos GROUP=posedio
 ARG BUILDPATH=/go/src/github.com/Posedio/gaiax-opa
+
+RUN apk add --no-cache python3
 
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/passwd /etc/passwd
@@ -50,7 +33,6 @@ COPY --from=builder ${BUILDPATH}/gaiax-opa /usr/local/bin/gaiax-opa
 RUN mkdir -p /policies && \
     mkdir -p /etc/gaiax-opa && \
     mkdir -p /run/secrets && \
-    # scripts dir for cli_exec: not writable by the OPA process
     mkdir -p /scripts && \
     chown -R $USER:$GROUP /policies && \
     chown root:$GROUP /etc/gaiax-opa && chmod 750 /etc/gaiax-opa && \
@@ -60,13 +42,8 @@ RUN mkdir -p /policies && \
     chmod 755 /usr/local/bin/gaiax-opa
 
 WORKDIR /policies
-
 USER $USER:$GROUP
-
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin:/
-
-
-
 EXPOSE 8181/tcp
 EXPOSE 50051/tcp
 ENTRYPOINT ["/usr/local/bin/gaiax-opa"]
