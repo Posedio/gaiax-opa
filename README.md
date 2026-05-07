@@ -76,9 +76,17 @@ plugins:
     issuer: "did:web:example.com"
     verificationMethod: "did:web:example.com#key-1"
     path: "/danube" #host is the same as the OPA server, currently not available in the grpc plugin
-    policy: "data.verify.legalPerson"
-    idPrefix: "https://example.com/credentials"
+    compliancePolicies:
+      - policy: "data.verify.legalPerson"
+        trustScope: CUSTOM_PONTUSX_GX_PARTICIPANT
+        idPrefix: "https://example.com/credentials/participant"
+      - policy: "data.verify.legalRegistrationNumber"
+        trustScope: CUSTOM_LRN
+        idPrefix: "https://example.com/credentials/lrn"
 ```
+
+Each entry registers an HTTP endpoint at `<path>/<trustScope>`. The
+`/trust-scope` endpoint returns a JSON list of all registered trust scopes.
 
 The `external_pdp` plugin registers the `externalPDP(source, input)` built-in function.
 Sources are named HTTP endpoints configured server-side, so Rego policies stay decoupled from URLs.

@@ -17,6 +17,7 @@ import (
 	"github.com/open-policy-agent/opa/v1/runtime"
 	"github.com/open-policy-agent/opa/v1/util"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -119,18 +120,50 @@ type opaServiceServer struct {
 func (s *opaServiceServer) Query(ctx context.Context, req *grpcpb.QueryRequest) (*grpcpb.QueryResponse, error) {
 	query := "data." + strings.ReplaceAll(req.GetPath(), "/", ".")
 	input := req.GetInput().AsMap()
-	rs, evalErr := rego.New(
-		rego.Query(query),
-		rego.Input(input),
-		rego.Store(s.manager.Store),
-		rego.Compiler(s.manager.GetCompiler()),
-	).Eval(ctx)
+
+	reqMetadata := metadataFromIncomingContext(ctx)
+	respMetadata := map[string]any{}
 
 	remoteAddr := "grpc"
 	if p, ok := peer.FromContext(ctx); ok {
 		remoteAddr = p.Addr.String()
 	}
-	decisionlog.Log(ctx, s.manager, req.GetPath(), remoteAddr, input, rs, evalErr, nil)
+
+	customLog := func() map[string]any {
+		c := map[string]any{}
+		if len(reqMetadata) > 0 {
+			c["request_metadata"] = reqMetadata
+		}
+		if len(respMetadata) > 0 {
+			c["response_metadata"] = respMetadata
+		}
+		if len(c) == 0 {
+			return nil
+		}
+		return c
+	}
+
+	pq, err := rego.New(
+		rego.Query(query),
+		rego.Store(s.manager.Store),
+		rego.Compiler(s.manager.GetCompiler()),
+	).PrepareForEval(ctx)
+	if err != nil {
+		decisionlog.Log(ctx, s.manager, req.GetPath(), remoteAddr, input, nil, err, customLog())
+		return &grpcpb.QueryResponse{Error: err.Error()}, nil
+	}
+
+	rs, evalErr := pq.Eval(ctx,
+		rego.EvalInput(input),
+		rego.EvalRequestMetadata(reqMetadata),
+		rego.EvalResponseMetadata(respMetadata),
+	)
+
+	decisionlog.Log(ctx, s.manager, req.GetPath(), remoteAddr, input, rs, evalErr, customLog())
+
+	if err := sendResponseMetadata(ctx, respMetadata); err != nil {
+		s.manager.Logger().Warn("gRPC plugin: failed to send response metadata: %v", err)
+	}
 
 	if evalErr != nil {
 		return &grpcpb.QueryResponse{Error: evalErr.Error()}, nil
@@ -144,6 +177,51 @@ func (s *opaServiceServer) Query(ctx context.Context, req *grpcpb.QueryRequest) 
 		return &grpcpb.QueryResponse{Error: fmt.Sprintf("serialize result: %v", err)}, nil
 	}
 	return &grpcpb.QueryResponse{Result: result, Allowed: allAllowed(rs)}, nil
+}
+
+func metadataFromIncomingContext(ctx context.Context) map[string]any {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok || len(md) == 0 {
+		return map[string]any{}
+	}
+	out := make(map[string]any, len(md))
+	for k, v := range md {
+		switch len(v) {
+		case 0:
+			continue
+		case 1:
+			out[k] = v[0]
+		default:
+			values := make([]any, len(v))
+			for i, s := range v {
+				values[i] = s
+			}
+			out[k] = values
+		}
+	}
+	return out
+}
+
+func sendResponseMetadata(ctx context.Context, m map[string]any) error {
+	if len(m) == 0 {
+		return nil
+	}
+	out := metadata.MD{}
+	for k, v := range m {
+		switch x := v.(type) {
+		case string:
+			out.Append(k, x)
+		case []any:
+			for _, e := range x {
+				out.Append(k, fmt.Sprint(e))
+			}
+		case []string:
+			out.Append(k, x...)
+		default:
+			out.Append(k, fmt.Sprint(v))
+		}
+	}
+	return grpc.SetTrailer(ctx, out)
 }
 
 func allAllowed(rs rego.ResultSet) bool {

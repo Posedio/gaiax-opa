@@ -17,8 +17,10 @@ plugins:
     sigAlgo: "PS256"
     verificationMethod: "did:web:did.dumss.me#v1-2026"
     path: "/danube"
-    policy: "data.compliance.legalPerson"
-    idPrefix: "https://example.com/trustedParty"
+    compliancePolicies:
+      - policy: "data.compliance.legalPerson"
+        trustScope: CUSTOM_PONTUSX_GX_PARTICIPANT
+        idPrefix: "https://example.com/trustedParty" #only needed if vcid is not set in request query
   file_logger:
     path: ./decision.log
     max_size_mb: 100
@@ -29,7 +31,7 @@ plugins:
   external_pdp:
     sources:
       legalPerson: "http://127.0.0.1:8181/v1/data/verify/legalPerson"
-      danube: "http://127.0.0.1:8181/danube"
+      danube: "http://127.0.0.1:8181/danube/CUSTOM_PONTUSX_GX_PARTICIPANT"
   cli_exec:
     commands:
       #validate_vat: ["/usr/bin/python3", "/scripts/validate_vat.py"] #for docker compose
